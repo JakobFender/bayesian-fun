@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Probably: a deadpan instrument for the calibrated adjustment of opinion. Bayes' rule, live." />
+    <meta name="theme-color" content="#f4efe4" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#16140f" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet" />
+    <title>Probably</title>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="wrap">
+        <p class="eyebrow">Department of Calibrated Opinion · Form P(H|E)</p>
+        <h1>Probably<span class="dot">.</span></h1>
+        <p class="tagline">An instrument for adjusting your beliefs by exactly the right amount. Results not legally binding.</p>
+        <nav class="tabs" role="tablist" aria-label="Mode">
+          <button role="tab" id="tab-lab" aria-controls="panel-lab" data-mode="lab">Hypothesis lab</button>
+          <button role="tab" id="tab-coin" aria-controls="panel-coin" data-mode="coin">Coin bench</button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <!-- ============ HYPOTHESIS LAB ============ -->
+      <section id="panel-lab" role="tabpanel" aria-labelledby="tab-lab">
+        <section class="card presets" aria-labelledby="presets-h">
+          <h2 id="presets-h">Case files <small>pre-approved absurdities</small></h2>
+          <div class="preset-row" id="preset-row"></div>
+        </section>
+
+        <div class="lab-grid">
+          <div class="col-main">
+            <section class="card" aria-labelledby="hyp-h">
+              <h2 id="hyp-h"><span class="num">1</span> The hypothesis</h2>
+              <label class="sr-only" for="hypothesis">Hypothesis</label>
+              <textarea id="hypothesis" rows="2" maxlength="200"
+                placeholder="e.g. My neighbour is a retired spy"></textarea>
+
+              <div class="prior-block">
+                <div class="row-between">
+                  <label for="prior">Prior belief <span class="muted">P(H), before any evidence</span></label>
+                  <output id="prior-out" for="prior" class="big-num"></output>
+                </div>
+                <input type="range" id="prior" min="0" max="100" step="0.5" />
+                <div class="scale-labels" aria-hidden="true">
+                  <span>Absurd</span><span>Coin toss</span><span>Obviously</span>
+                </div>
+                <div id="cromwell" class="warning" role="alert" hidden></div>
+              </div>
+            </section>
+
+            <section class="card" aria-labelledby="ev-h">
+              <div class="row-between">
+                <h2 id="ev-h"><span class="num">2</span> The evidence</h2>
+                <button class="btn" id="add-evidence">+ Admit evidence</button>
+              </div>
+              <p class="hint">For each observation, estimate how likely you'd be to see it
+                <strong>if the hypothesis were true</strong>, and how likely <strong>if it were false</strong>.
+                The ratio between the two is all that matters. Everything else is decoration.</p>
+              <ol id="evidence-list" class="evidence-list"></ol>
+              <p id="evidence-empty" class="empty">No evidence has been submitted. The court is, frankly, bored.</p>
+            </section>
+          </div>
+
+          <aside class="col-side">
+            <section class="card verdict" aria-labelledby="verdict-h" aria-live="polite">
+              <h2 id="verdict-h"><span class="num">3</span> The verdict</h2>
+              <p class="muted small" id="verdict-hyp"></p>
+              <div class="posterior-wrap">
+                <div class="posterior" id="posterior-out">—</div>
+                <div class="stamp" id="stamp" aria-hidden="true">Beyond<br />reasonable<br />doubt</div>
+              </div>
+              <p class="verdict-text" id="verdict-text"></p>
+              <div class="meter" aria-hidden="true">
+                <div class="meter-prior" id="meter-prior"></div>
+                <div class="meter-fill" id="meter-fill"></div>
+              </div>
+              <dl class="stats" id="stats"></dl>
+              <button class="btn ghost share" data-share>Share this case file</button>
+            </section>
+          </aside>
+        </div>
+
+        <section class="card" aria-labelledby="traj-h">
+          <div class="row-between wrap-row">
+            <h2 id="traj-h"><span class="num">4</span> Belief over time</h2>
+            <div class="seg" role="group" aria-label="Chart scale">
+              <button data-scale="prob" aria-pressed="true">Probability</button>
+              <button data-scale="db" aria-pressed="false">Log-odds (dB)</button>
+            </div>
+          </div>
+          <p class="hint" id="traj-hint"></p>
+          <div class="chart-box"><canvas id="traj-chart" aria-label="Line chart of belief after each piece of evidence"></canvas></div>
+        </section>
+
+        <section class="card" aria-labelledby="box-h">
+          <div class="row-between wrap-row">
+            <h2 id="box-h"><span class="num">5</span> Inside one update</h2>
+            <div class="stepper">
+              <button class="btn small" id="box-prev" aria-label="Previous evidence">‹</button>
+              <span id="box-label">—</span>
+              <button class="btn small" id="box-next" aria-label="Next evidence">›</button>
+            </div>
+          </div>
+          <p class="hint">The whole width is everything that could be true. The width of each column is your belief
+            <em>before</em> this evidence; the shaded height is how likely the evidence is in that world.
+            Once you see the evidence, only the shaded area survives, and the posterior is the left column's share of it.</p>
+          <div class="bayes-box" id="bayes-box"></div>
+          <p class="equation" id="box-eq"></p>
+        </section>
+      </section>
+
+      <!-- ============ COIN BENCH ============ -->
+      <section id="panel-coin" role="tabpanel" aria-labelledby="tab-coin" hidden>
+        <div class="lab-grid">
+          <div class="col-main">
+            <section class="card" aria-labelledby="coin-h">
+              <h2 id="coin-h">The coin bench <small>is this coin fair?</small></h2>
+              <p class="hint">Hypothesis lab handles yes/no questions. Here the unknown is a <em>number</em>, the coin's
+                bias θ = P(heads). Your belief about it is a whole distribution: a Beta(α, β). Each heads adds 1 to α
+                and each tails adds 1 to β. That's the whole update rule.</p>
+
+              <div class="coin-stage">
+                <button class="coin" id="coin-visual" aria-label="Flip the mystery coin">
+                  <span class="coin-face" id="coin-face">?</span>
+                </button>
+                <div class="coin-buttons">
+                  <button class="btn big heads" id="btn-heads">Heads</button>
+                  <button class="btn big tails" id="btn-tails">Tails</button>
+                </div>
+              </div>
+              <div class="coin-tools">
+                <button class="btn ghost" id="btn-mystery1">Flip mystery coin</button>
+                <button class="btn ghost" id="btn-mystery10">Flip it ×10</button>
+                <button class="btn ghost" id="btn-reveal">Reveal mystery bias</button>
+                <button class="btn ghost" id="btn-undo">Undo</button>
+                <button class="btn ghost" id="btn-coin-reset">Reset flips</button>
+              </div>
+              <p class="small muted" id="mystery-note">A mystery coin with an unknown bias is on the bench. Flip it and see how fast you work it out.</p>
+              <div class="flip-log" id="flip-log" aria-label="Flip history"></div>
+            </section>
+
+            <section class="card" aria-labelledby="beta-h">
+              <h2 id="beta-h">Belief about θ</h2>
+              <div class="chart-box tall"><canvas id="beta-chart" aria-label="Prior and posterior Beta densities"></canvas></div>
+              <p class="hint">The dashed curve is where you started; the solid curve is where you are now.
+                The shaded band is the 95% credible interval. Watch it narrow as flips accumulate. Doubt shrinks roughly with
+                1/√n, which is slower than anyone would like.</p>
+            </section>
+          </div>
+
+          <aside class="col-side">
+            <section class="card" aria-labelledby="coinprior-h">
+              <h2 id="coinprior-h">Prior temperament</h2>
+              <div class="prior-choices" id="coin-priors" role="radiogroup" aria-label="Prior"></div>
+              <div class="ab-inputs">
+                <label>α <input type="number" id="coin-a" min="0.1" max="1000" step="0.5" /></label>
+                <label>β <input type="number" id="coin-b" min="0.1" max="1000" step="0.5" /></label>
+              </div>
+            </section>
+            <section class="card verdict" aria-labelledby="coinstat-h" aria-live="polite">
+              <h2 id="coinstat-h">Findings</h2>
+              <dl class="stats" id="coin-stats"></dl>
+              <p class="verdict-text" id="coin-verdict"></p>
+              <button class="btn ghost share" data-share>Share this experiment</button>
+            </section>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <footer class="wrap footer">
+      <p>Built on the work of Rev. Thomas Bayes (1701–1761), who did not live to see his theorem used to interrogate a printer.
+        No cats were consulted. <a href="https://en.wikipedia.org/wiki/Bayes%27_theorem" rel="noopener">Further reading</a>.</p>
+    </footer>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
