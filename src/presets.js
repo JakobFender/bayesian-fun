@@ -6,7 +6,6 @@ const ev = (text, pEH, pEnH) => ({ text, pEH, pEnH, on: true });
 export const PRESETS = [
   {
     id: 'cat',
-    emoji: '🐈',
     title: 'The cat is plotting against me',
     lesson: 'Several modest clues compound. One big clue dominates.',
     hypothesis: 'My cat is actively plotting against me',
@@ -20,7 +19,6 @@ export const PRESETS = [
   },
   {
     id: 'printer',
-    emoji: '🖨️',
     title: 'The printer resents me specifically',
     lesson: 'Evidence that is likely either way barely moves anything. Then one item does.',
     hypothesis: 'The office printer is sentient and resents me personally',
@@ -34,7 +32,6 @@ export const PRESETS = [
   },
   {
     id: 'pigeon',
-    emoji: '🐦',
     title: 'It is the same pigeon every day',
     lesson: 'A low prior can be overcome — if the evidence is genuinely surprising otherwise.',
     hypothesis: 'The pigeon at my bus stop is the same individual pigeon every day',
@@ -48,7 +45,6 @@ export const PRESETS = [
   },
   {
     id: 'socks',
-    emoji: '🧦',
     title: 'The dryer is a portal',
     lesson: "Cromwell's rule: a prior of 0% is a promise never to learn anything.",
     hypothesis: 'My dryer is a portal to a sock-exclusive dimension',
@@ -61,7 +57,6 @@ export const PRESETS = [
   },
   {
     id: 'plant',
-    emoji: '🪴',
     title: 'The plant is faking it for attention',
     lesson: 'Order does not matter: the posterior is the same however you shuffle the evidence.',
     hypothesis: 'My houseplant is faking its own death for attention',

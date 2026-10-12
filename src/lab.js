@@ -4,7 +4,9 @@ import { fmtPct, fmtNum, fmtDb, toPct, fromPct, escapeHtml } from './format.js';
 import { Chart, chartColors, applyChartDefaults } from './theme.js';
 
 const $ = (id) => document.getElementById(id);
-const DB_CLIP = 40; // log-odds chart clips at ±40 dB (10,000 : 1)
+const DB_CLIP = 40;
+// Strength of a Bayes factor as a row of marks, so it reads without colour.
+const MARKS = { void: '××××', none: '○○○○', weak: '●○○○', substantial: '●●○○', strong: '●●●○', decisive: '●●●●', proof: '●●●●∞' }; // log-odds chart clips at ±40 dB (10,000 : 1)
 
 function verdictFor(p) {
   if (Number.isNaN(p)) return 'Undefined. You observed something your prior declared impossible. Please consult a philosopher.';
@@ -52,11 +54,10 @@ export function initLab(state, { persist, toast, fresh }) {
   /* ---------- presets ---------- */
   const row = $('preset-row');
   row.innerHTML = PRESETS.map(
-    (p) => `<button class="preset" data-preset="${p.id}">
-      <span class="preset-emoji" aria-hidden="true">${p.emoji}</span>
+    (p) => `<li><button class="preset" data-preset="${p.id}">
       <span class="preset-title">${escapeHtml(p.title)}</span>
       <span class="preset-lesson">${escapeHtml(p.lesson)}</span>
-    </button>`,
+    </button></li>`,
   ).join('');
   row.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-preset]');
@@ -107,7 +108,7 @@ export function initLab(state, { persist, toast, fresh }) {
     const v = toPct(state.evidence[i][key]);
     return `<div class="lk lk-${key}">
       <div class="lk-head">
-        <label for="ev-${i}-${key}">${label} <span class="muted">${sub}</span></label>
+        <label for="ev-${i}-${key}">${label} <span class="meta">${sub}</span></label>
         <span class="lk-num"><input type="number" inputmode="decimal" min="0" max="100" step="any"
           id="ev-${i}-${key}-n" data-key="${key}" data-kind="num" value="${v}" aria-label="${label} percent" />%</span>
       </div>
@@ -131,7 +132,7 @@ export function initLab(state, { persist, toast, fresh }) {
         </div>
         <div class="ev-foot">
           <span class="bf-badge" data-bf></span>
-          <span class="ev-shift" data-shift></span>
+          <span class="meta" data-shift></span>
           <label class="admit"><input type="checkbox" data-on ${e.on !== false ? 'checked' : ''} /> admitted</label>
         </div>
         <p class="quip" data-quip></p>
@@ -205,11 +206,11 @@ export function initLab(state, { persist, toast, fresh }) {
     }
     els.cromwell.hidden = false;
     const word = p === 0 ? '0%' : '100%';
-    els.cromwell.innerHTML = `<strong>⚠ Cromwell's rule violated.</strong>
-      With a prior of exactly ${word}, no evidence, however overwhelming, can ever move you.
-      Multiplying by zero is very stable.
+    els.cromwell.innerHTML = `<p class="label">Warning · Cromwell's rule violated</p>
+      <p>With a prior of exactly ${word}, no evidence, however overwhelming, can ever move you.
+      Multiplying by zero is very stable.</p>
       <blockquote>“I beseech you, in the bowels of Christ, think it possible you may be mistaken.”<cite>Oliver Cromwell, 1650</cite></blockquote>
-      <button class="btn small" data-sliver>Allow a sliver of doubt (${p === 0 ? '0.5%' : '99.5%'})</button>`;
+      <button class="btn secondary" data-sliver>Allow a sliver of doubt (${p === 0 ? '0.5%' : '99.5%'})</button>`;
   }
 
   function renderCards(steps) {
@@ -217,8 +218,8 @@ export function initLab(state, { persist, toast, fresh }) {
       const s = steps[i];
       const st = strength(s.bf);
       const badge = card.querySelector('[data-bf]');
-      badge.className = `bf-badge tier-${st.tier} dir-${st.dir > 0 ? 'for' : st.dir < 0 ? 'against' : 'none'}`;
-      badge.innerHTML = `<b>BF ${fmtNum(s.bf)}</b> · ${st.label} <span class="db">${fmtDb(decibans(s.bf))}</span>`;
+      badge.className = `bf-badge tier-${st.tier}`;
+      badge.innerHTML = `<span class="marks" aria-hidden="true">${MARKS[st.tier]}</span>BF ${fmtNum(s.bf)}<span class="sep"> · </span>${st.label}<span class="sep"> · </span><span class="db">${fmtDb(decibans(s.bf))}</span>`;
       card.querySelector('[data-shift]').textContent = s.active
         ? `${fmtPct(s.before)} → ${fmtPct(s.after)}`
         : 'struck from the record';
@@ -270,21 +271,21 @@ export function initLab(state, { persist, toast, fresh }) {
     const values = [state.prior, ...steps.map((s) => s.after)];
     const data = values.map(seriesValue);
     const threshold = scale === 'prob' ? 99 : probToDecibans(0.99);
-    const pointColors = [c.prior, ...steps.map((s) => (s.active ? c.series : c.grid))];
+    const pointColors = [c.muted, ...steps.map((s) => (s.active ? c.ink : c.line))];
 
     els.trajHint.textContent =
       scale === 'prob'
-        ? 'Each point is your belief after admitting that piece of evidence. The red dashed line marks 99%: reasonable doubt ends here.'
+        ? 'Each point is your belief after admitting that piece of evidence. The olive dashed line marks 99%: reasonable doubt ends here.'
         : 'Log-odds in decibans: 0 dB is 50/50, +10 dB is 10:1 odds, +20 dB is 100:1. On this scale every piece of evidence is a fixed-size step: its Bayes factor in dB. Clipped at ±40 dB.';
 
     const datasets = [
       {
         label: 'Belief',
         data,
-        borderColor: c.series,
-        backgroundColor: c.seriesFill,
+        borderColor: c.ink,
+        backgroundColor: c.surface,
         pointBackgroundColor: pointColors,
-        pointBorderColor: c.surface,
+        pointBorderColor: c.bg,
         pointBorderWidth: 2,
         pointRadius: 6,
         pointHoverRadius: 8,
@@ -295,9 +296,9 @@ export function initLab(state, { persist, toast, fresh }) {
       {
         label: 'Reasonable doubt threshold',
         data: labels.map(() => threshold),
-        borderColor: c.stamp,
-        borderDash: [6, 5],
-        borderWidth: 1.5,
+        borderColor: c.accent,
+        borderDash: [4, 4],
+        borderWidth: 1,
         pointRadius: 0,
         pointHitRadius: 0,
         fill: false,
@@ -394,7 +395,7 @@ export function initLab(state, { persist, toast, fresh }) {
     const total = s.joint + s.jointNot;
     const shareH = total > 0 ? (s.joint / total) * 100 : 0;
     els.box.innerHTML = `
-      <p class="box-title">${escapeHtml(e.text || '(unlabelled evidence)')}${s.active ? '' : ' <span class="muted">(struck: shown hypothetically)</span>'}</p>
+      <p class="box-title">${escapeHtml(e.text || '(unlabelled evidence)')}${s.active ? '' : ' <span class="meta">(struck: shown hypothetically)</span>'}</p>
       <div class="box-cols" role="img" aria-label="Prior split ${fmtPct(before)} versus ${fmtPct(1 - before)}; evidence likelihood ${fmtPct(e.pEH)} versus ${fmtPct(e.pEnH)}">
         <div class="box-col col-h" style="flex-basis:${wH}%">
           <div class="box-fill" style="height:${e.pEH * 100}%"></div>
@@ -408,7 +409,7 @@ export function initLab(state, { persist, toast, fresh }) {
         <div><span class="sw sw-n"></span><b>H false</b>: ${fmtPct(1 - before)} wide × ${fmtPct(e.pEnH)} shaded = <b>${fmtPct(s.jointNot)}</b></div>
       </div>
       <div class="box-after">
-        <span class="muted small">After seeing E, only the shaded area remains:</span>
+        <span class="meta">After seeing E, only the shaded area remains</span>
         <div class="split-bar" aria-hidden="true">
           <div class="split-h" style="width:${shareH}%"></div>
           <div class="split-n" style="width:${100 - shareH}%"></div>

@@ -149,15 +149,15 @@ export function initCoin(state, { persist }) {
     const band = post.map((pt) => ({ x: pt.x, y: pt.x >= sum.lo && pt.x <= sum.hi ? pt.y : null }));
     const peak = Math.max(...post.map((p) => p.y), ...prior.map((p) => p.y));
     const datasets = [
-      { label: '95% credible interval', data: band, borderWidth: 0, backgroundColor: c.seriesFill, fill: 'origin', pointRadius: 0, spanGaps: false },
-      { label: 'Posterior', data: post, borderColor: c.series, borderWidth: 2, pointRadius: 0, fill: false },
-      { label: 'Prior', data: prior, borderColor: c.prior, borderWidth: 1.5, borderDash: [5, 5], pointRadius: 0, fill: false },
+      { label: '95% credible interval', data: band, borderWidth: 0, backgroundColor: c.line, fill: 'origin', pointRadius: 0, spanGaps: false },
+      { label: 'Posterior', data: post, borderColor: c.ink, borderWidth: 2, pointRadius: 0, fill: false },
+      { label: 'Prior', data: prior, borderColor: c.muted, borderWidth: 1, borderDash: [4, 4], pointRadius: 0, fill: false },
     ];
     if (revealed) {
       datasets.push({
         label: 'True bias',
         data: [{ x: mystery, y: 0 }, { x: mystery, y: peak * 1.05 }],
-        borderColor: c.truth,
+        borderColor: c.accent,
         borderWidth: 2,
         pointRadius: 0,
         fill: false,
@@ -184,7 +184,7 @@ export function initCoin(state, { persist }) {
       },
       scales: {
         x: { type: 'linear', min: 0, max: 1, title: { display: true, text: 'θ = P(heads)' }, ticks: { callback: (v) => v } },
-        y: { min: 0, title: { display: true, text: 'density' }, grid: { color: c.grid } },
+        y: { min: 0, title: { display: true, text: 'density' } },
       },
     };
     if (!chart) {
