@@ -26,7 +26,7 @@ src/
   format.js             Probability/number formatting (handles values hugging 0 and 1), escapeHtml
   presets.js            The five absurd scenarios, coin priors, DEFAULT_STATE
   theme.js              Chart.js import + defaults that read colours from CSS custom properties
-  style.css             All styles; colour tokens on :root, dark mode via prefers-color-scheme
+  style.css             All styles; design tokens on :root, dark mode via prefers-color-scheme
 tests/bayes.test.js     Tests for bayes.js, share.js, format.js, presets
 .github/workflows/deploy.yml   Test, build and deploy to Pages on push to main
 ```
@@ -50,11 +50,28 @@ The mystery coin's true bias is deliberately kept out of state so shared links d
 - Keep `bayes.js`, `share.js`, `format.js` DOM-free so they stay testable under plain Node.
 - Evidence cards are rebuilt only on structural changes (add/remove/preset); slider input updates
   derived output in place (`renderDerived`) so focus is not lost mid-drag.
-- Colours live in CSS tokens; charts read them via `chartColors()`. Add a token to both the light
-  and dark blocks in `style.css` rather than hard-coding hex in JS.
+- Colours live in CSS tokens; charts read them via `chartColors()`. Never hard-code hex in JS.
 - Edge cases to keep handling: prior exactly 0/1 (Cromwell), P(E|¬H)=0 (infinite Bayes factor),
   both likelihoods 0 (NaN posterior), and garbage in the URL hash (decode must sanitise).
 - Must stay usable at 360px width with no horizontal scroll.
+
+## Design system
+
+Styling follows the portfolio design guidelines (warm, precise, a little quirky). When adding UI:
+
+- Tokens only: `--color-*`, `--space-*` (4, 8, 12, 16, 24, 32, 48, 64, 96, 128px), `--radius` (2px),
+  `--duration` / `--ease`. Never pure white/black, no gradients, glows or shadows.
+- Olive (`--color-accent`) is sparing: one italic word per headline (`<h2>… <em>word</em> …</h2>`),
+  links, mono labels, a few decorative lines. Small olive text uses `--color-accent-strong`. Never a fill.
+- Fonts: Fraunces 400 for h1/h2/big numbers (always `font-variation-settings: 'SOFT' 100, 'WONK' 1`),
+  Onest 400/500 for body and UI, Martian Mono 400 at 12px for labels and metadata only.
+  Type scale: h1 56/36px, h2 36/28px, body 17/16px, small 15px, labels 12px.
+- Sections are separated by whitespace and 1px `--color-line` rules, not cards. Each section starts with
+  a mono label like `03 — Verdict`. Lists (presets, evidence, coin priors, stats) are rows with top borders.
+- Buttons: `.btn.primary` (at most one per view) and `.btn.secondary`. No pills or badges; tags are mono
+  text joined with ` · `. Bayes factor strength is shown as marks (●●○○), not colour.
+- Charts use only ink, muted, line, surface, and accent (for the 99% line and the true coin bias).
+- Motion: 150–250ms ease-out, translations ≤ 8px, no bouncing; everything is off under reduced motion.
 
 ## Deployment
 
